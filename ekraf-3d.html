@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Ekraf & Wisata + Navigasi</title>
+    
+    <script src='https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js'></script>
+    <link href='https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css' rel='stylesheet' />
+    
+    <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.1.1/mapbox-gl-directions.js"></script>
+    <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.1.1/mapbox-gl-directions.css" type="text/css">
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary: #4361ee;
+            --glass: rgba(255, 255, 255, 0.9);
+            --glass-blur: blur(15px);
+        }
+
+        body { margin: 0; padding: 0; font-family: 'Poppins', sans-serif; overflow: hidden; }
+        #map { position: absolute; top: 0; bottom: 0; width: 100%; }
+
+        /* --- 1. VIEW SWITCHER (2D/3D) --- */
+        .view-toggle {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--glass);
+            padding: 5px;
+            border-radius: 30px;
+            display: flex;
+            gap: 5px;
+            backdrop-filter: var(--glass-blur);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            z-index: 10;
+        }
+        .view-btn {
+            border: none;
+            padding: 8px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 12px;
+            background: transparent;
+            color: #555;
+            transition: 0.3s;
+        }
+        .view-btn.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 2px 8px rgba(67, 97, 238, 0.4);
+        }
+
+        /* --- SIDEBAR --- */
+        .sidebar {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 320px;
+            max-height: 85vh;
+            background: var(--glass);
+            backdrop-filter: var(--glass-blur);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            z-index: 5;
+        }
+
+        /* Styling elemen sidebar sama seperti sebelumnya */
+        .brand { display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .brand-icon { background: var(--primary); color: white; width: 35px; height: 35px; border-radius: 10px; display: grid; place-items: center; }
+        .stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .stat-card { background: rgba(255,255,255,0.7); padding: 10px; border-radius: 10px; text-align: center; border: 1px solid #eee; }
+        
+        .chip { padding: 5px 10px; border-radius: 15px; font-size: 11px; border: 1px solid #ccc; cursor: pointer; display: inline-block; margin: 2px; }
+        .chip.active { background: var(--primary); color: white; border-color: var(--primary); }
+        
+        .location-list { overflow-y: auto; flex-grow: 1; padding-right: 5px; }
+        .loc-item { padding: 10px; border-radius: 10px; background: rgba(255,255,255,0.6); margin-bottom: 8px; cursor: pointer; transition: 0.2s; }
+        .loc-item:hover { background: white; transform: translateX(5px); }
+
+        /* --- POPUP & MARKER --- */
+        .mapboxgl-popup-content { border-radius: 12px; padding: 0; overflow: hidden; max-width: 280px; }
+        .popup-header { background: var(--primary); color: white; padding: 12px; font-weight: 600; }
+        .popup-body { padding: 15px; }
+        .btn-route {
+            display: block; width: 100%; padding: 8px 0; margin-top: 10px;
+            background: #2ecc71; color: white; text-align: center; border-radius: 6px;
+            text-decoration: none; font-size: 12px; cursor: pointer; border: none;
+        }
+        .btn-route:hover { background: #27ae60; }
+
+        .pulse {
+            width: 15px; height: 15px; border-radius: 50%; background: var(--primary);
+            box-shadow: 0 0 0 rgba(67, 97, 238, 0.4); animation: pulse 2s infinite; cursor: pointer;
+        }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(67, 97, 238, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(67, 97, 238, 0); } 100% { box-shadow: 0 0 0 0 rgba(67, 97, 238, 0); } }
+
+        /* --- MAPBOX DIRECTIONS STYLE OVERRIDE --- */
+        .mapboxgl-ctrl-top-right { top: 60px; right: 10px; } /* Turunkan sedikit agar tidak tertutup header */
+        .mapboxgl-ctrl-directions { min-width: 250px; max-width: 300px; }
+    </style>
+</head>
+<body>
+
+<div id="map"></div>
+
+<div class="view-toggle">
+    <button class="view-btn" id="btn-2d" onclick="switchMode('2D')">2D View</button>
+    <button class="view-btn active" id="btn-3d" onclick="switchMode('3D')">3D City</button>
+</div>
+
+<div class="sidebar">
+    <div class="brand">
+        <div class="brand-icon"><i class="fas fa-map"></i></div>
+        <div>
+            <h3 style="margin:0; font-size:16px;">Portal Ekraf</h3>
+            <small style="color:#777;">Sistem Navigasi & Data</small>
+        </div>
+    </div>
+
+    <div class="stats-row">
+        <div class="stat-card">
+            <strong style="color:var(--primary)" id="total-count">0</strong><br><small>Lokasi</small>
+        </div>
+        <div class="stat-card">
+            <strong style="color:#e74c3c" id="risk-count">0</strong><br><small>Risiko Tinggi</small>
+        </div>
+    </div>
+
+    <div>
+        <small style="font-weight:600;">FILTER DATA:</small><br>
+        <div id="filters">
+            <span class="chip active" onclick="filterData('all', this)">Semua</span>
+            <span class="chip" onclick="filterData('Kuliner', this)">Kuliner</span>
+            <span class="chip" onclick="filterData('Kriya', this)">Kriya</span>
+            <span class="chip" onclick="filterData('Fesyen', this)">Fesyen</span>
+        </div>
+    </div>
+
+    <div class="location-list" id="location-list">
+        </div>
+</div>
+
+<script>
+    // 1. ACCESS TOKEN
+    mapboxgl.accessToken = 'pk.eyJ1IjoiYWRlbnNldHlvOTEiLCJhIjoiY21qcng1NGNkNGs3bzNpb3dwN2F4d21iMiJ9.HuxCF8jOGISuEBdyjOJznw';
+
+    // 2. SETUP MAP
+    const map = new mapboxgl.Map({
+        container: 'map',
+        style: 'mapbox://styles/mapbox/streets-v12', // Style awal
+        center: [112.7150, -7.4500],
+        zoom: 12,
+        pitch: 60, // Awal Mulai Langsung 3D
+        bearing: -17,
+        antialias: true
+    });
+
+    // 3. SETUP DIRECTIONS (NAVIGASI)
+    const directions = new MapboxDirections({
+        accessToken: mapboxgl.accessToken,
+        unit: 'metric',
+        profile: 'mapbox/driving', // Mode berkendara
+        controls: { inputs: true, instructions: true, profileSwitcher: true },
+        language: 'id'
+    });
+    // Letakkan panel navigasi di Kanan Atas
+    map.addControl(directions, 'top-right');
+
+    // 4. DATA DUMMY
+    const dataStore = [
+        { id:1, nama: "Batik Jetis Exclusive", sektor: "Kriya", kec: "Sidoarjo", lat: -7.4389, lng: 112.7150, risk: "Rendah" },
+        { id:2, nama: "Sentra Kupang Lontong", sektor: "Kuliner", kec: "Candi", lat: -7.4726, lng: 112.7128, risk: "Sedang" },
+        { id:3, nama: "Creative Hub Waru", sektor: "Fesyen", kec: "Waru", lat: -7.3511, lng: 112.7300, risk: "Rendah" },
+        { id:4, nama: "Industri Tas Tanggulangin", sektor: "Fesyen", kec: "Tanggulangin", lat: -7.5056, lng: 112.6980, risk: "Tinggi" },
+        { id:5, nama: "Wisata Pulau Lusi", sektor: "Pariwisata", kec: "Jabon", lat: -7.5670, lng: 112.8360, risk: "Sedang" }
+    ];
+
+    // LOAD MAP
+    map.on('load', () => {
+        // Layer 3D Buildings
+        const layers = map.getStyle().layers;
+        const labelLayerId = layers.find(l => l.type === 'symbol' && l.layout['text-field']).id;
+        map.addLayer({
+            'id': '3d-buildings',
+            'source': 'composite',
+            'source-layer': 'building',
+            'filter': ['==', 'extrude', 'true'],
+            'type': 'fill-extrusion',
+            'minzoom': 13,
+            'paint': {
+                'fill-extrusion-color': '#aaa',
+                'fill-extrusion-height': ['get', 'height'],
+                'fill-extrusion-opacity': 0.6
+            }
+        }, labelLayerId);
+
+        renderPoints(dataStore);
+        updateStats(dataStore);
+    });
+
+    // --- FUNGSI RENDER POINT ---
+    let currentMarkers = [];
+    function renderPoints(data) {
+        currentMarkers.forEach(m => m.remove());
+        currentMarkers = [];
+        const listEl = document.getElementById('location-list');
+        listEl.innerHTML = '';
+
+        data.forEach(item => {
+            // Marker Map
+            const el = document.createElement('div');
+            el.className = 'pulse';
+            if(item.risk === 'Tinggi') el.style.background = '#e74c3c'; // Merah jika risiko tinggi
+            
+            const marker = new mapboxgl.Marker(el)
+                .setLngLat([item.lng, item.lat])
+                .setPopup(createPopup(item))
+                .addTo(map);
+            currentMarkers.push(marker);
+
+            // List Item Sidebar
+            const listItem = document.createElement('div');
+            listItem.className = 'loc-item';
+            listItem.innerHTML = `<strong>${item.nama}</strong><br><small>${item.sektor} - ${item.kec}</small>`;
+            listItem.addEventListener('click', () => {
+                map.flyTo({ center: [item.lng, item.lat], zoom: 15 });
+                marker.togglePopup();
+            });
+            listEl.appendChild(listItem);
+        });
+    }
+
+    // --- FUNGSI POPUP DENGAN NAVIGASI ---
+    function createPopup(item) {
+        // Kita gunakan HTML string untuk Popup
+        const html = `
+            <div class="popup-header">${item.nama}</div>
+            <div class="popup-body">
+                <p style="margin:0 0 10px 0; font-size:12px;">Sektor: ${item.sektor} (${item.risk})</p>
+                <button class="btn-route" onclick="startNavigation(${item.lng}, ${item.lat})">
+                    <i class="fas fa-location-arrow"></i> Rute ke Sini
+                </button>
+                <a href="#" style="display:block; text-align:center; font-size:11px; margin-top:5px; color:#555;">Lihat 360°</a>
+            </div>
+        `;
+        return new mapboxgl.Popup({ offset: 25 }).setHTML(html);
+    }
+
+    // --- LOGIC NAVIGASI ---
+    window.startNavigation = function(destLng, destLat) {
+        // 1. Set Tujuan
+        directions.setDestination([destLng, destLat]);
+
+        // 2. Ambil Lokasi User (GPS)
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(position => {
+                const userLng = position.coords.longitude;
+                const userLat = position.coords.latitude;
+                
+                // Set Asal
+                directions.setOrigin([userLng, userLat]);
+                
+                // Zoom ke area rute
+                map.flyTo({
+                    center: [userLng, userLat],
+                    zoom: 13
+                });
+            }, () => {
+                alert("Mohon izinkan akses lokasi (GPS) browser Anda untuk memulai navigasi.");
+            });
+        } else {
+            alert("Browser Anda tidak mendukung Geolocation.");
+        }
+    }
+
+    // --- LOGIC SWITCH 2D / 3D ---
+    window.switchMode = function(mode) {
+        // Update tombol active
+        document.getElementById('btn-2d').classList.remove('active');
+        document.getElementById('btn-3d').classList.remove('active');
+        document.getElementById('btn-' + mode.toLowerCase()).classList.add('active');
+
+        if (mode === '2D') {
+            // Ubah ke Pandangan Atas (Flat)
+            map.easeTo({
+                pitch: 0,
+                bearing: 0,
+                duration: 1000 // Animasi 1 detik
+            });
+        } else {
+            // Ubah ke Pandangan Miring (3D)
+            map.easeTo({
+                pitch: 60,
+                bearing: -17,
+                duration: 1000
+            });
+        }
+    }
+
+    // --- HELPER LAIN ---
+    window.filterData = function(cat, el) {
+        document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+        el.classList.add('active');
+        const filtered = (cat === 'all') ? dataStore : dataStore.filter(d => d.sektor === cat);
+        renderPoints(filtered);
+    }
+
+    function updateStats(data) {
+        document.getElementById('total-count').innerText = data.length;
+        document.getElementById('risk-count').innerText = data.filter(d => d.risk === 'Tinggi').length;
+    }
+
+</script>
+
+</body>
+</html>
