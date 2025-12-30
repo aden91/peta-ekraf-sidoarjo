@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Ekraf & Wisata Sidoarjo</title>
+
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src * data: blob: 'unsafe-inline' 'unsafe-eval';
+        script-src * data: blob: 'unsafe-inline' 'unsafe-eval';
+        connect-src * data: blob: 'unsafe-inline';
+        img-src * data: blob: 'unsafe-inline';
+        frame-src *;
+        style-src * data: blob: 'unsafe-inline';
+        font-src * data: blob: 'unsafe-inline';
+    ">
+
+    <script src='https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js'></script>
+    <link href='https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css' rel='stylesheet' />
+    
+    <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.1.1/mapbox-gl-directions.js"></script>
+    <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.1.1/mapbox-gl-directions.css" type="text/css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Mulish:wght@400;600;800&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* --- VISUAL STYLING --- */
+        :root {
+            --primary: #2563eb;    /* Biru Cerah */
+            --accent: #f59e0b;     /* Oranye Cerah */
+            --danger: #ef4444;     /* Merah Modern */
+            --success: #10b981;    /* Hijau Mint */
+            --glass: rgba(255, 255, 255, 0.9);
+            --glass-blur: blur(16px);
+            --shadow: 0 10px 40px -10px rgba(0,0,0,0.2);
+        }
+
+        body { margin: 0; padding: 0; font-family: 'Mulish', 'Poppins', sans-serif; overflow: hidden; }
+        
+        #map { position: absolute; top: 0; bottom: 0; width: 100%; }
+
+        /* HEADER JUDUL (NEW) */
+        .page-header {
+            position: absolute; top: 20px; left: 20px; right: auto;
+            background: var(--glass);
+            padding: 15px 25px;
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            z-index: 10;
+            display: flex; align-items: center; gap: 15px;
+            max-width: 320px;
+            border: 1px solid rgba(255,255,255,0.6);
+        }
+        .header-logo {
+            width: 45px; height: 45px;
+            background: linear-gradient(135deg, var(--primary), #4f46e5);
+            border-radius: 12px;
+            display: grid; place-items: center;
+            color: white; font-size: 20px;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+        .header-text h1 { margin: 0; font-size: 18px; font-weight: 800; color: #1e293b; letter-spacing: -0.5px; }
+        .header-text p { margin: 0; font-size: 12px; color: #64748b; font-weight: 600; }
+
+        /* TOGGLE 2D/3D & STYLE */
+        .controls-group {
+            position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
+            display: flex; gap: 10px; z-index: 10;
+        }
+        .control-btn {
+            background: var(--glass); border: none; padding: 10px 20px;
+            border-radius: 50px; cursor: pointer; font-weight: 700; font-size: 13px;
+            color: #475569; transition: all 0.2s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+        }
+        .control-btn i { margin-right: 6px; }
+        .control-btn:hover { transform: translateY(-2px); background: white; }
+        .control-btn.active { background: var(--primary); color: white; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4); }
+
+        /* SIDEBAR DASHBOARD */
+        .sidebar {
+            position: absolute; top: 110px; left: 20px; width: 340px;
+            max-height: calc(100vh - 140px);
+            background: var(--glass);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border-radius: 20px; padding: 20px;
+            box-shadow: var(--shadow);
+            display: flex; flex-direction: column; gap: 15px; z-index: 5;
+            border: 1px solid rgba(255,255,255,0.5);
+            transition: transform 0.3s ease;
+        }
+
+        /* STATISTIK */
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .stat-box {
+            background: rgba(255,255,255,0.6); border: 1px solid rgba(255,255,255,0.8);
+            padding: 12px; border-radius: 12px; text-align: center;
+        }
+        .stat-val { font-size: 24px; font-weight: 800; color: #1e293b; line-height: 1; margin-bottom: 4px; }
+        .stat-lbl { font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        /* FILTER CHIPS */
+        .filter-title { font-size: 11px; font-weight: 800; color: #94a3b8; margin-bottom: 8px; letter-spacing: 0.5px; }
+        .chips-container { display: flex; flex-wrap: wrap; gap: 6px; }
+        .chip {
+            padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600;
+            background: white; border: 1px solid #e2e8f0; color: #64748b; cursor: pointer; transition: 0.2s;
+        }
+        .chip:hover { border-color: var(--primary); color: var(--primary); }
+        .chip.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2); }
+
+        /* LIST LOKASI */
+        .loc-list { overflow-y: auto; flex-grow: 1; padding-right: 5px; scrollbar-width: thin; }
+        .loc-card {
+            background: rgba(255,255,255,0.5); border-radius: 12px; padding: 12px;
+            margin-bottom: 8px; cursor: pointer; transition: all 0.2s;
+            border-left: 4px solid transparent; display: flex; justify-content: space-between; align-items: center;
+        }
+        .loc-card:hover { background: white; transform: translateX(4px); box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .loc-info h4 { margin: 0; font-size: 13px; color: #334155; font-weight: 700; }
+        .loc-info span { font-size: 11px; color: #64748b; margin-top: 2px; display: block; }
+        
+        /* Indikator Risiko di List */
+        .loc-card.risk-Tinggi { border-left-color: var(--danger); }
+        .loc-card.risk-Sedang { border-left-color: var(--accent); }
+        .loc-card.risk-Rendah { border-left-color: var(--success); }
+
+        /* POPUP MAP */
+        .mapboxgl-popup-content { border-radius: 16px; padding: 0; overflow: hidden; border: none; box-shadow: var(--shadow); max-width: 300px; }
+        .popup-header {
+            height: 120px; background-size: cover; background-position: center; position: relative;
+        }
+        .popup-gradient {
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+        }
+        .popup-title {
+            position: absolute; bottom: 15px; left: 15px; right: 15px;
+            color: white; font-weight: 700; font-size: 16px; z-index: 2; text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        .popup-body { padding: 15px; background: white; }
+        .tag-row { display: flex; gap: 8px; margin-bottom: 10px; }
+        .tag { padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; background: #f1f5f9; color: #475569; }
+        .tag.risk-Tinggi { background: #fef2f2; color: var(--danger); }
+        .tag.risk-Sedang { background: #fffbeb; color: var(--accent); }
+        .tag.risk-Rendah { background: #ecfdf5; color: var(--success); }
+
+        .btn-nav {
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            width: 100%; padding: 10px 0; margin-top: 15px;
+            background: var(--primary); color: white; border-radius: 10px;
+            text-decoration: none; font-size: 13px; font-weight: 600;
+            border: none; cursor: pointer; transition: 0.2s;
+        }
+        .btn-nav:hover { background: #1d4ed8; }
+
+        /* ANIMASI MARKER */
+        .marker-dot {
+            width: 18px; height: 18px; border-radius: 50%;
+            background: var(--primary); border: 3px solid white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            cursor: pointer; position: relative;
+        }
+        .marker-dot::after {
+            content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 30px; height: 30px; border-radius: 50%;
+            border: 2px solid var(--primary); opacity: 0;
+            animation: pulse 2s infinite;
+        }
+        .marker-dot.risk-Tinggi { background: var(--danger); }
+        .marker-dot.risk-Tinggi::after { border-color: var(--danger); }
+        .marker-dot.risk-Sedang { background: var(--accent); }
+        .marker-dot.risk-Sedang::after { border-color: var(--accent); }
+        .marker-dot.risk-Rendah { background: var(--success); }
+        .marker-dot.risk-Rendah::after { border-color: var(--success); }
+
+        @keyframes pulse {
+            0% { width: 18px; height: 18px; opacity: 0.8; }
+            100% { width: 50px; height: 50px; opacity: 0; }
+        }
+
+        /* RESPONSIVE HP */
+        .mapboxgl-ctrl-top-right { top: 90px; right: 10px; }
+        @media (max-width: 600px) {
+            .page-header { width: calc(100% - 70px); top: 15px; left: 15px; padding: 10px 15px; }
+            .header-logo { width: 35px; height: 35px; font-size: 16px; }
+            .header-text h1 { font-size: 16px; }
+            .controls-group { bottom: 30px; top: auto; width: 100%; justify-content: center; }
+            .sidebar { 
+                top: auto; bottom: 85px; left: 10px; width: calc(100% - 60px); 
+                max-height: 40vh; transform: translateY(0); 
+            }
+            .sidebar.hidden { transform: translateY(110%); } /* Fitur hide sidebar di HP */
+            .mapboxgl-ctrl-top-right { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="map"></div>
+
+<div class="page-header">
+    <div class="header-logo"><i class="fas fa-map-marked-alt"></i></div>
+    <div class="header-text">
+        <h1>SIDOARJO MAPS</h1>
+        <p>Sebaran Ekraf & Potensi Wisata</p>
+    </div>
+</div>
+
+<div class="controls-group">
+    <button class="control-btn active" id="btn-street" onclick="changeStyle('streets')">
+        <i class="fas fa-city"></i> Peta Jalan
+    </button>
+    <button class="control-btn" id="btn-sat" onclick="changeStyle('satellite')">
+        <i class="fas fa-satellite"></i> Satelit 3D
+    </button>
+</div>
+
+<div class="sidebar" id="sidebar">
+    <div class="stats-grid">
+        <div class="stat-box">
+            <div class="stat-val" style="color:var(--primary)" id="total-count">0</div>
+            <div class="stat-lbl">Total Lokasi</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-val" style="color:var(--danger)" id="risk-count">0</div>
+            <div class="stat-lbl">Risiko Tinggi</div>
+        </div>
+    </div>
+
+    <div>
+        <div class="filter-title">KATEGORI SEKTOR</div>
+        <div class="chips-container" id="filters">
+            <div class="chip active" onclick="filterData('all', this)">Semua</div>
+            <div class="chip" onclick="filterData('Kuliner', this)">Kuliner</div>
+            <div class="chip" onclick="filterData('Kriya', this)">Kriya</div>
+            <div class="chip" onclick="filterData('Fesyen', this)">Fesyen</div>
+            <div class="chip" onclick="filterData('Pariwisata', this)">Wisata</div>
+        </div>
+    </div>
+
+    <div class="loc-list" id="location-list"></div>
+</div>
+
+<script>
+    // 1. TOKEN MAPBOX
+    mapboxgl.accessToken = 'pk.eyJ1IjoiYWRlbnNldHlvOTEiLCJhIjoiY21qcng1NGNkNGs3bzNpb3dwN2F4d21iMiJ9.HuxCF8jOGISuEBdyjOJznw';
+
+    // 2. SETUP PETA (FULL COLOR)
+    const map = new mapboxgl.Map({
+        container: 'map',
+        // GANTI KE STREETS v12 (Paling berwarna & detail)
+        style: 'mapbox://styles/mapbox/streets-v12', 
+        center: [112.7150, -7.4500],
+        zoom: 12.5,
+        pitch: 45, // Miring sedikit agar terlihat keren
+        bearing: 0,
+        projection: 'globe', // Mode Globe (Bumi Bulat)
+        antialias: true
+    });
+
+    // 3. TAMBAHKAN ATMOSFER (LANGIT BIRU)
+    map.on('style.load', () => {
+        map.setFog({
+            'color': 'rgb(186, 210, 235)', // Warna langit bawah
+            'high-color': 'rgb(36, 92, 223)', // Warna langit atas (biru tua)
+            'horizon-blend': 0.02,
+            'space-color': 'rgb(11, 11, 25)', // Warna luar angkasa
+            'star-intensity': 0.6 // Intensitas bintang
+        });
+    });
+
+    // 4. NAVIGASI
+    const directions = new MapboxDirections({
+        accessToken: mapboxgl.accessToken,
+        unit: 'metric',
+        profile: 'mapbox/driving',
+        controls: { inputs: true, instructions: true, profileSwitcher: false },
+        language: 'id'
+    });
+    map.addControl(directions, 'top-right');
+
+    // 5. DATA DUMMY (SAMA SEPERTI SEBELUMNYA)
+    const dataStore = [
+        { id:1, nama: "Kampung Batik Jetis", sektor: "Kriya", kec: "Sidoarjo", lat: -7.4389, lng: 112.7150, risk: "Rendah", img: "https://images.unsplash.com/photo-1599691887340-9d5813d11b23?w=600&q=80", desc: "Sentra batik tulis bersejarah sejak 1675." },
+        { id:2, nama: "Sentra Kupang Lontong", sektor: "Kuliner", kec: "Candi", lat: -7.4726, lng: 112.7128, risk: "Sedang", img: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600&q=80", desc: "Pusat kuliner khas Sidoarjo." },
+        { id:3, nama: "Creative Hub Waru", sektor: "Fesyen", kec: "Waru", lat: -7.3511, lng: 112.7300, risk: "Rendah", img: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&q=80", desc: "Space kolaborasi anak muda." },
+        { id:4, nama: "Industri Tas Tanggulangin", sektor: "Fesyen", kec: "Tanggulangin", lat: -7.5056, lng: 112.6980, risk: "Tinggi", img: "https://images.unsplash.com/photo-1549448830-4e50889218d6?w=600&q=80", desc: "Sentra kerajinan kulit & koper." },
+        { id:5, nama: "Wisata Bahari Tlocor", sektor: "Pariwisata", kec: "Jabon", lat: -7.5670, lng: 112.8360, risk: "Sedang", img: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&q=80", desc: "Dermaga menuju Pulau Lusi." }
+    ];
+
+    map.on('load', () => {
+        add3DBuildings();
+        renderPoints(dataStore);
+        updateStats(dataStore);
+    });
+
+    // FUNGSI GANTI STYLE (JALAN vs SATELIT)
+    window.changeStyle = function(style) {
+        document.getElementById('btn-street').classList.remove('active');
+        document.getElementById('btn-sat').classList.remove('active');
+
+        if (style === 'streets') {
+            document.getElementById('btn-street').classList.add('active');
+            map.setStyle('mapbox://styles/mapbox/streets-v12'); // KEMBALI KE WARNA CERAH
+        } else {
+            document.getElementById('btn-sat').classList.add('active');
+            map.setStyle('mapbox://styles/mapbox/satellite-streets-v12'); // SATELIT KEREN
+        }
+
+        // Perlu reload layer gedung & marker setelah ganti style
+        map.once('style.load', () => {
+            add3DBuildings();
+            map.setFog({}); // Reset langit
+            renderPoints(dataStore); // Render ulang marker
+        });
+    }
+
+    // LAYER GEDUNG 3D
+    function add3DBuildings() {
+        if(map.getLayer('3d-buildings')) return; // Cek agar tidak duplikat
+        const layers = map.getStyle().layers;
+        const labelLayerId = layers.find(l => l.type === 'symbol' && l.layout['text-field']).id;
+        map.addLayer({
+            'id': '3d-buildings',
+            'source': 'composite',
+            'source-layer': 'building',
+            'filter': ['==', 'extrude', 'true'],
+            'type': 'fill-extrusion',
+            'minzoom': 13,
+            'paint': {
+                'fill-extrusion-color': '#aaa',
+                'fill-extrusion-height': ['get', 'height'],
+                'fill-extrusion-base': ['get', 'min_height'],
+                'fill-extrusion-opacity': 0.6
+            }
+        }, labelLayerId);
+    }
+
+    let currentMarkers = [];
+
+    function renderPoints(data) {
+        currentMarkers.forEach(m => m.remove());
+        currentMarkers = [];
+        const listEl = document.getElementById('location-list');
+        listEl.innerHTML = '';
+
+        data.forEach(item => {
+            // Marker Custom CSS
+            const el = document.createElement('div');
+            el.className = `marker-dot risk-${item.risk}`;
+            
+            const marker = new mapboxgl.Marker(el)
+                .setLngLat([item.lng, item.lat])
+                .setPopup(createPopup(item))
+                .addTo(map);
+            currentMarkers.push(marker);
+
+            // List Sidebar
+            const card = document.createElement('div');
+            card.className = `loc-card risk-${item.risk}`;
+            card.innerHTML = `
+                <div class="loc-info">
+                    <h4>${item.nama}</h4>
+                    <span>${item.sektor} • ${item.kec}</span>
+                </div>
+                <div style="font-size:18px; color:#cbd5e1;"><i class="fas fa-chevron-right"></i></div>
+            `;
+            card.addEventListener('click', () => {
+                map.flyTo({ center: [item.lng, item.lat], zoom: 16, pitch: 60, bearing: 20 });
+                marker.togglePopup();
+            });
+            listEl.appendChild(card);
+        });
+    }
+
+    function createPopup(item) {
+        return new mapboxgl.Popup({ offset: 25, closeButton: false }).setHTML(`
+            <div class="popup-header" style="background-image: url('${item.img}');">
+                <div class="popup-gradient"></div>
+                <div class="popup-title">${item.nama}</div>
+            </div>
+            <div class="popup-body">
+                <div class="tag-row">
+                    <span class="tag">${item.sektor}</span>
+                    <span class="tag risk-${item.risk}">${item.risk} Risk</span>
+                </div>
+                <p style="margin:0; font-size:12px; line-height:1.5; color:#475569;">${item.desc}</p>
+                <button class="btn-nav" onclick="startNavigation(${item.lng}, ${item.lat})">
+                    <i class="fas fa-location-arrow"></i> Rute Navigasi
+                </button>
+            </div>
+        `);
+    }
+
+    window.startNavigation = function(destLng, destLat) {
+        directions.setDestination([destLng, destLat]);
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(pos => {
+                directions.setOrigin([pos.coords.longitude, pos.coords.latitude]);
+                map.flyTo({ center: [pos.coords.longitude, pos.coords.latitude], zoom: 14 });
+            }, () => alert("Aktifkan GPS Browser!"));
+        } else { alert("GPS tidak didukung"); }
+    }
+
+    window.filterData = function(cat, el) {
+        document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+        el.classList.add('active');
+        const filtered = (cat === 'all') ? dataStore : dataStore.filter(d => d.sektor === cat);
+        renderPoints(filtered);
+    }
+
+    function updateStats(data) {
+        document.getElementById('total-count').innerText = data.length;
+        document.getElementById('risk-count').innerText = data.filter(d => d.risk === 'Tinggi').length;
+    }
+</script>
+
+</body>
+</html>
