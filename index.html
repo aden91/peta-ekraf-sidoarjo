@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal Ekraf & Wisata Sidoarjo</title>
+    <title>Peta Potensi Ekraf & Wisata Sidoarjo</title>
 
     <meta http-equiv="Content-Security-Policy" content="
         default-src * data: blob: 'unsafe-inline' 'unsafe-eval';
@@ -29,11 +29,11 @@
     <style>
         /* --- VISUAL STYLING --- */
         :root {
-            --primary: #2563eb;    /* Biru Cerah */
-            --accent: #f59e0b;     /* Oranye Cerah */
-            --danger: #ef4444;     /* Merah Modern */
-            --success: #10b981;    /* Hijau Mint */
-            --glass: rgba(255, 255, 255, 0.9);
+            --primary: #2563eb;    
+            --accent: #f59e0b;     
+            --danger: #ef4444;     
+            --success: #10b981;    
+            --glass: rgba(255, 255, 255, 0.95);
             --glass-blur: blur(16px);
             --shadow: 0 10px 40px -10px rgba(0,0,0,0.2);
         }
@@ -42,32 +42,26 @@
         
         #map { position: absolute; top: 0; bottom: 0; width: 100%; }
 
-        /* HEADER JUDUL (NEW) */
+        /* HEADER */
         .page-header {
             position: absolute; top: 20px; left: 20px; right: auto;
             background: var(--glass);
-            padding: 15px 25px;
-            border-radius: 16px;
+            padding: 15px 25px; border-radius: 16px;
             box-shadow: var(--shadow);
-            backdrop-filter: var(--glass-blur);
-            -webkit-backdrop-filter: var(--glass-blur);
-            z-index: 10;
-            display: flex; align-items: center; gap: 15px;
-            max-width: 320px;
-            border: 1px solid rgba(255,255,255,0.6);
+            backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
+            z-index: 10; display: flex; align-items: center; gap: 15px;
+            max-width: 340px; border: 1px solid rgba(255,255,255,0.6);
         }
         .header-logo {
             width: 45px; height: 45px;
             background: linear-gradient(135deg, var(--primary), #4f46e5);
-            border-radius: 12px;
-            display: grid; place-items: center;
-            color: white; font-size: 20px;
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+            border-radius: 12px; display: grid; place-items: center;
+            color: white; font-size: 20px; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
         }
         .header-text h1 { margin: 0; font-size: 18px; font-weight: 800; color: #1e293b; letter-spacing: -0.5px; }
         .header-text p { margin: 0; font-size: 12px; color: #64748b; font-weight: 600; }
 
-        /* TOGGLE 2D/3D & STYLE */
+        /* TOGGLE STYLE */
         .controls-group {
             position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
             display: flex; gap: 10px; z-index: 10;
@@ -75,27 +69,21 @@
         .control-btn {
             background: var(--glass); border: none; padding: 10px 20px;
             border-radius: 50px; cursor: pointer; font-weight: 700; font-size: 13px;
-            color: #475569; transition: all 0.2s;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            backdrop-filter: var(--glass-blur);
-            -webkit-backdrop-filter: var(--glass-blur);
+            color: #475569; transition: all 0.2s; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
-        .control-btn i { margin-right: 6px; }
         .control-btn:hover { transform: translateY(-2px); background: white; }
         .control-btn.active { background: var(--primary); color: white; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4); }
 
-        /* SIDEBAR DASHBOARD */
+        /* SIDEBAR */
         .sidebar {
             position: absolute; top: 110px; left: 20px; width: 340px;
             max-height: calc(100vh - 140px);
             background: var(--glass);
-            backdrop-filter: var(--glass-blur);
-            -webkit-backdrop-filter: var(--glass-blur);
+            backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
             border-radius: 20px; padding: 20px;
             box-shadow: var(--shadow);
             display: flex; flex-direction: column; gap: 15px; z-index: 5;
             border: 1px solid rgba(255,255,255,0.5);
-            transition: transform 0.3s ease;
         }
 
         /* STATISTIK */
@@ -105,17 +93,16 @@
             padding: 12px; border-radius: 12px; text-align: center;
         }
         .stat-val { font-size: 24px; font-weight: 800; color: #1e293b; line-height: 1; margin-bottom: 4px; }
-        .stat-lbl { font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-lbl { font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; }
 
-        /* FILTER CHIPS */
-        .filter-title { font-size: 11px; font-weight: 800; color: #94a3b8; margin-bottom: 8px; letter-spacing: 0.5px; }
+        /* FILTER */
+        .filter-title { font-size: 11px; font-weight: 800; color: #94a3b8; margin-bottom: 8px; }
         .chips-container { display: flex; flex-wrap: wrap; gap: 6px; }
         .chip {
             padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600;
             background: white; border: 1px solid #e2e8f0; color: #64748b; cursor: pointer; transition: 0.2s;
         }
-        .chip:hover { border-color: var(--primary); color: var(--primary); }
-        .chip.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2); }
+        .chip.active { background: var(--primary); color: white; border-color: var(--primary); }
 
         /* LIST LOKASI */
         .loc-list { overflow-y: auto; flex-grow: 1; padding-right: 5px; scrollbar-width: thin; }
@@ -128,24 +115,15 @@
         .loc-info h4 { margin: 0; font-size: 13px; color: #334155; font-weight: 700; }
         .loc-info span { font-size: 11px; color: #64748b; margin-top: 2px; display: block; }
         
-        /* Indikator Risiko di List */
         .loc-card.risk-Tinggi { border-left-color: var(--danger); }
         .loc-card.risk-Sedang { border-left-color: var(--accent); }
         .loc-card.risk-Rendah { border-left-color: var(--success); }
 
         /* POPUP MAP */
         .mapboxgl-popup-content { border-radius: 16px; padding: 0; overflow: hidden; border: none; box-shadow: var(--shadow); max-width: 300px; }
-        .popup-header {
-            height: 120px; background-size: cover; background-position: center; position: relative;
-        }
-        .popup-gradient {
-            position: absolute; bottom: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
-        }
-        .popup-title {
-            position: absolute; bottom: 15px; left: 15px; right: 15px;
-            color: white; font-weight: 700; font-size: 16px; z-index: 2; text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-        }
+        .popup-header { height: 130px; background-size: cover; background-position: center; position: relative; }
+        .popup-gradient { position: absolute; bottom: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); }
+        .popup-title { position: absolute; bottom: 15px; left: 15px; right: 15px; color: white; font-weight: 700; font-size: 16px; z-index: 2; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
         .popup-body { padding: 15px; background: white; }
         .tag-row { display: flex; gap: 8px; margin-bottom: 10px; }
         .tag { padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; background: #f1f5f9; color: #475569; }
@@ -164,16 +142,13 @@
 
         /* ANIMASI MARKER */
         .marker-dot {
-            width: 18px; height: 18px; border-radius: 50%;
+            width: 20px; height: 20px; border-radius: 50%;
             background: var(--primary); border: 3px solid white;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            cursor: pointer; position: relative;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3); cursor: pointer; position: relative;
         }
         .marker-dot::after {
             content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 30px; height: 30px; border-radius: 50%;
-            border: 2px solid var(--primary); opacity: 0;
-            animation: pulse 2s infinite;
+            width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--primary); opacity: 0; animation: pulse 2s infinite;
         }
         .marker-dot.risk-Tinggi { background: var(--danger); }
         .marker-dot.risk-Tinggi::after { border-color: var(--danger); }
@@ -182,23 +157,16 @@
         .marker-dot.risk-Rendah { background: var(--success); }
         .marker-dot.risk-Rendah::after { border-color: var(--success); }
 
-        @keyframes pulse {
-            0% { width: 18px; height: 18px; opacity: 0.8; }
-            100% { width: 50px; height: 50px; opacity: 0; }
-        }
+        @keyframes pulse { 0% { width: 20px; height: 20px; opacity: 0.8; } 100% { width: 50px; height: 50px; opacity: 0; } }
 
-        /* RESPONSIVE HP */
+        /* RESPONSIVE */
         .mapboxgl-ctrl-top-right { top: 90px; right: 10px; }
         @media (max-width: 600px) {
             .page-header { width: calc(100% - 70px); top: 15px; left: 15px; padding: 10px 15px; }
             .header-logo { width: 35px; height: 35px; font-size: 16px; }
-            .header-text h1 { font-size: 16px; }
+            .header-text h1 { font-size: 15px; }
             .controls-group { bottom: 30px; top: auto; width: 100%; justify-content: center; }
-            .sidebar { 
-                top: auto; bottom: 85px; left: 10px; width: calc(100% - 60px); 
-                max-height: 40vh; transform: translateY(0); 
-            }
-            .sidebar.hidden { transform: translateY(110%); } /* Fitur hide sidebar di HP */
+            .sidebar { top: auto; bottom: 85px; left: 10px; width: calc(100% - 60px); max-height: 40vh; }
             .mapboxgl-ctrl-top-right { display: none; }
         }
     </style>
@@ -211,17 +179,13 @@
     <div class="header-logo"><i class="fas fa-map-marked-alt"></i></div>
     <div class="header-text">
         <h1>SIDOARJO MAPS</h1>
-        <p>Sebaran Ekraf & Potensi Wisata</p>
+        <p>Portal Wisata & Ekraf</p>
     </div>
 </div>
 
 <div class="controls-group">
-    <button class="control-btn active" id="btn-street" onclick="changeStyle('streets')">
-        <i class="fas fa-city"></i> Peta Jalan
-    </button>
-    <button class="control-btn" id="btn-sat" onclick="changeStyle('satellite')">
-        <i class="fas fa-satellite"></i> Satelit 3D
-    </button>
+    <button class="control-btn active" id="btn-street" onclick="changeStyle('streets')"><i class="fas fa-city"></i> Peta Jalan</button>
+    <button class="control-btn" id="btn-sat" onclick="changeStyle('satellite')"><i class="fas fa-satellite"></i> Satelit 3D</button>
 </div>
 
 <div class="sidebar" id="sidebar">
@@ -237,13 +201,13 @@
     </div>
 
     <div>
-        <div class="filter-title">KATEGORI SEKTOR</div>
+        <div class="filter-title">FILTER KATEGORI</div>
         <div class="chips-container" id="filters">
             <div class="chip active" onclick="filterData('all', this)">Semua</div>
+            <div class="chip" onclick="filterData('Pariwisata', this)">Wisata</div>
             <div class="chip" onclick="filterData('Kuliner', this)">Kuliner</div>
             <div class="chip" onclick="filterData('Kriya', this)">Kriya</div>
             <div class="chip" onclick="filterData('Fesyen', this)">Fesyen</div>
-            <div class="chip" onclick="filterData('Pariwisata', this)">Wisata</div>
         </div>
     </div>
 
@@ -251,34 +215,32 @@
 </div>
 
 <script>
-    // 1. TOKEN MAPBOX
     mapboxgl.accessToken = 'pk.eyJ1IjoiYWRlbnNldHlvOTEiLCJhIjoiY21qcng1NGNkNGs3bzNpb3dwN2F4d21iMiJ9.HuxCF8jOGISuEBdyjOJznw';
 
-    // 2. SETUP PETA (FULL COLOR)
+    // SETUP PETA
     const map = new mapboxgl.Map({
         container: 'map',
-        // GANTI KE STREETS v12 (Paling berwarna & detail)
         style: 'mapbox://styles/mapbox/streets-v12', 
         center: [112.7150, -7.4500],
-        zoom: 12.5,
-        pitch: 45, // Miring sedikit agar terlihat keren
+        zoom: 11.5,
+        pitch: 50,
         bearing: 0,
-        projection: 'globe', // Mode Globe (Bumi Bulat)
+        projection: 'globe',
         antialias: true
     });
 
-    // 3. TAMBAHKAN ATMOSFER (LANGIT BIRU)
+    // EFEK ATMOSFER
     map.on('style.load', () => {
         map.setFog({
-            'color': 'rgb(186, 210, 235)', // Warna langit bawah
-            'high-color': 'rgb(36, 92, 223)', // Warna langit atas (biru tua)
+            'color': 'rgb(186, 210, 235)',
+            'high-color': 'rgb(36, 92, 223)',
             'horizon-blend': 0.02,
-            'space-color': 'rgb(11, 11, 25)', // Warna luar angkasa
-            'star-intensity': 0.6 // Intensitas bintang
+            'space-color': 'rgb(11, 11, 25)',
+            'star-intensity': 0.6
         });
     });
 
-    // 4. NAVIGASI
+    // NAVIGASI
     const directions = new MapboxDirections({
         accessToken: mapboxgl.accessToken,
         unit: 'metric',
@@ -288,13 +250,64 @@
     });
     map.addControl(directions, 'top-right');
 
-    // 5. DATA DUMMY (SAMA SEPERTI SEBELUMNYA)
+    // --- DATABASE LOKASI SIDOARJO (UPDATE TERBARU) ---
     const dataStore = [
-        { id:1, nama: "Kampung Batik Jetis", sektor: "Kriya", kec: "Sidoarjo", lat: -7.4389, lng: 112.7150, risk: "Rendah", img: "https://images.unsplash.com/photo-1599691887340-9d5813d11b23?w=600&q=80", desc: "Sentra batik tulis bersejarah sejak 1675." },
-        { id:2, nama: "Sentra Kupang Lontong", sektor: "Kuliner", kec: "Candi", lat: -7.4726, lng: 112.7128, risk: "Sedang", img: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600&q=80", desc: "Pusat kuliner khas Sidoarjo." },
-        { id:3, nama: "Creative Hub Waru", sektor: "Fesyen", kec: "Waru", lat: -7.3511, lng: 112.7300, risk: "Rendah", img: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&q=80", desc: "Space kolaborasi anak muda." },
-        { id:4, nama: "Industri Tas Tanggulangin", sektor: "Fesyen", kec: "Tanggulangin", lat: -7.5056, lng: 112.6980, risk: "Tinggi", img: "https://images.unsplash.com/photo-1549448830-4e50889218d6?w=600&q=80", desc: "Sentra kerajinan kulit & koper." },
-        { id:5, nama: "Wisata Bahari Tlocor", sektor: "Pariwisata", kec: "Jabon", lat: -7.5670, lng: 112.8360, risk: "Sedang", img: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&q=80", desc: "Dermaga menuju Pulau Lusi." }
+        // 1. WISATA & HERITAGE
+        { 
+            id:1, nama: "Pabrik Gula Candi Baru", sektor: "Pariwisata", kec: "Candi", 
+            lat: -7.4754, lng: 112.7138, risk: "Rendah", 
+            img: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/75/Pabrik_Gula_Candi_Baru_Sidoarjo.jpg/640px-Pabrik_Gula_Candi_Baru_Sidoarjo.jpg", 
+            desc: "Bangunan bersejarah peninggalan kolonial yang masih beroperasi sebagai pabrik gula dan destinasi wisata edukasi."
+        },
+        { 
+            id:2, nama: "Candi Pari", sektor: "Pariwisata", kec: "Porong", 
+            lat: -7.5453, lng: 112.7126, risk: "Rendah", 
+            img: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Candi_Pari.jpg/640px-Candi_Pari.jpg", 
+            desc: "Candi peninggalan Kerajaan Majapahit berbahan batu bata merah di Porong."
+        },
+        { 
+            id:3, nama: "Museum Mpu Tantular", sektor: "Pariwisata", kec: "Buduran", 
+            lat: -7.4300, lng: 112.7214, risk: "Sedang", 
+            img: "https://assets-a1.kompasiana.com/items/album/2019/07/22/img-20190721-125011-5d35ad360d8230214c776fb2.jpg", 
+            desc: "Museum Negeri Provinsi Jawa Timur yang menyimpan koleksi geologi, biologi, etnografi, dan sejarah."
+        },
+        { 
+            id:4, nama: "Kampung Batik Jetis", sektor: "Kriya", kec: "Sidoarjo", 
+            lat: -7.4389, lng: 112.7150, risk: "Rendah", 
+            img: "https://asset.kompas.com/crops/O3vB1k5qQv6KqJ6yQv6KqJ6yQv6=/0x0:1000x667/750x500/data/photo/2020/10/02/5f76a5b6a5b6a.jpg", 
+            desc: "Pusat batik tulis legendaris Sidoarjo sejak tahun 1675."
+        },
+        { 
+            id:5, nama: "Sentra UKM Tulangan", sektor: "Kriya", kec: "Tulangan", 
+            lat: -7.4764, lng: 112.6450, risk: "Tinggi", 
+            img: "https://images.unsplash.com/photo-1598522675667-e96726c59b2d?auto=format&fit=crop&w=600&q=80", 
+            desc: "Kawasan sentra kerajinan dan UMKM di sekitar area Tulangan yang membutuhkan pendampingan pemasaran."
+        },
+        // 2. EKRAF PUSAT KOTA
+        { 
+            id:6, nama: "Alun-Alun Sidoarjo (Area Ekraf)", sektor: "Kuliner", kec: "Sidoarjo", 
+            lat: -7.4468, lng: 112.7179, risk: "Rendah", 
+            img: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80", 
+            desc: "Pusat keramaian kota dengan berbagai stand kuliner dan event kreatif mingguan."
+        },
+        { 
+            id:7, nama: "Galeri UMKM Gajah Mada", sektor: "Fesyen", kec: "Sidoarjo", 
+            lat: -7.4520, lng: 112.7150, risk: "Sedang", 
+            img: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=600&q=80", 
+            desc: "Pusat perbelanjaan oleh-oleh dan fesyen karya desainer lokal di jantung kota."
+        },
+        { 
+            id:8, nama: "Industri Tas Tanggulangin", sektor: "Fesyen", kec: "Tanggulangin", 
+            lat: -7.5056, lng: 112.6980, risk: "Sedang", 
+            img: "https://images.unsplash.com/photo-1549448830-4e50889218d6?auto=format&fit=crop&w=600&q=80", 
+            desc: "Ikon industri kerajinan kulit Sidoarjo."
+        },
+        { 
+            id:9, nama: "Cafe & Creative Space Jenggo", sektor: "Kuliner", kec: "Sidoarjo", 
+            lat: -7.4420, lng: 112.7200, risk: "Rendah", 
+            img: "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=600&q=80", 
+            desc: "Tempat nongkrong sekaligus working space bagi freelancer muda Sidoarjo."
+        }
     ];
 
     map.on('load', () => {
@@ -303,30 +316,29 @@
         updateStats(dataStore);
     });
 
-    // FUNGSI GANTI STYLE (JALAN vs SATELIT)
+    // FUNGSI GANTI STYLE
     window.changeStyle = function(style) {
         document.getElementById('btn-street').classList.remove('active');
         document.getElementById('btn-sat').classList.remove('active');
 
         if (style === 'streets') {
             document.getElementById('btn-street').classList.add('active');
-            map.setStyle('mapbox://styles/mapbox/streets-v12'); // KEMBALI KE WARNA CERAH
+            map.setStyle('mapbox://styles/mapbox/streets-v12');
         } else {
             document.getElementById('btn-sat').classList.add('active');
-            map.setStyle('mapbox://styles/mapbox/satellite-streets-v12'); // SATELIT KEREN
+            map.setStyle('mapbox://styles/mapbox/satellite-streets-v12');
         }
 
-        // Perlu reload layer gedung & marker setelah ganti style
         map.once('style.load', () => {
             add3DBuildings();
-            map.setFog({}); // Reset langit
-            renderPoints(dataStore); // Render ulang marker
+            map.setFog({});
+            renderPoints(dataStore);
         });
     }
 
     // LAYER GEDUNG 3D
     function add3DBuildings() {
-        if(map.getLayer('3d-buildings')) return; // Cek agar tidak duplikat
+        if(map.getLayer('3d-buildings')) return;
         const layers = map.getStyle().layers;
         const labelLayerId = layers.find(l => l.type === 'symbol' && l.layout['text-field']).id;
         map.addLayer({
@@ -354,7 +366,6 @@
         listEl.innerHTML = '';
 
         data.forEach(item => {
-            // Marker Custom CSS
             const el = document.createElement('div');
             el.className = `marker-dot risk-${item.risk}`;
             
@@ -364,7 +375,6 @@
                 .addTo(map);
             currentMarkers.push(marker);
 
-            // List Sidebar
             const card = document.createElement('div');
             card.className = `loc-card risk-${item.risk}`;
             card.innerHTML = `
@@ -372,7 +382,7 @@
                     <h4>${item.nama}</h4>
                     <span>${item.sektor} • ${item.kec}</span>
                 </div>
-                <div style="font-size:18px; color:#cbd5e1;"><i class="fas fa-chevron-right"></i></div>
+                <div style="font-size:16px; color:#cbd5e1;"><i class="fas fa-chevron-right"></i></div>
             `;
             card.addEventListener('click', () => {
                 map.flyTo({ center: [item.lng, item.lat], zoom: 16, pitch: 60, bearing: 20 });
