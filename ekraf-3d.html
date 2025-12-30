@@ -2,6 +2,17 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
+    
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src 'self';
+        script-src 'self' 'unsafe-inline' https://api.mapbox.com https://cdnjs.cloudflare.com https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.1.1/mapbox-gl-directions.js;
+        style-src 'self' 'unsafe-inline' https://api.mapbox.com https://fonts.googleapis.com https://cdnjs.cloudflare.com;
+        font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com;
+        img-src 'self' data: blob: *;
+        connect-src 'self' https://api.mapbox.com https://events.mapbox.com;
+        worker-src 'self' blob:;
+    ">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Portal Ekraf & Wisata + Navigasi</title>
     
@@ -36,6 +47,7 @@
             display: flex;
             gap: 5px;
             backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur); /* Support Safari */
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             z-index: 10;
         }
@@ -65,6 +77,7 @@
             max-height: 85vh;
             background: var(--glass);
             backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
             border-radius: 16px;
             padding: 20px;
             box-shadow: 0 8px 32px rgba(0,0,0,0.1);
@@ -74,7 +87,6 @@
             z-index: 5;
         }
 
-        /* Styling elemen sidebar sama seperti sebelumnya */
         .brand { display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
         .brand-icon { background: var(--primary); color: white; width: 35px; height: 35px; border-radius: 10px; display: grid; place-items: center; }
         .stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -105,7 +117,7 @@
         @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(67, 97, 238, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(67, 97, 238, 0); } 100% { box-shadow: 0 0 0 0 rgba(67, 97, 238, 0); } }
 
         /* --- MAPBOX DIRECTIONS STYLE OVERRIDE --- */
-        .mapboxgl-ctrl-top-right { top: 60px; right: 10px; } /* Turunkan sedikit agar tidak tertutup header */
+        .mapboxgl-ctrl-top-right { top: 60px; right: 10px; }
         .mapboxgl-ctrl-directions { min-width: 250px; max-width: 300px; }
     </style>
 </head>
@@ -157,10 +169,10 @@
     // 2. SETUP MAP
     const map = new mapboxgl.Map({
         container: 'map',
-        style: 'mapbox://styles/mapbox/streets-v12', // Style awal
+        style: 'mapbox://styles/mapbox/streets-v12',
         center: [112.7150, -7.4500],
         zoom: 12,
-        pitch: 60, // Awal Mulai Langsung 3D
+        pitch: 60, 
         bearing: -17,
         antialias: true
     });
@@ -169,11 +181,10 @@
     const directions = new MapboxDirections({
         accessToken: mapboxgl.accessToken,
         unit: 'metric',
-        profile: 'mapbox/driving', // Mode berkendara
+        profile: 'mapbox/driving',
         controls: { inputs: true, instructions: true, profileSwitcher: true },
         language: 'id'
     });
-    // Letakkan panel navigasi di Kanan Atas
     map.addControl(directions, 'top-right');
 
     // 4. DATA DUMMY
@@ -185,7 +196,6 @@
         { id:5, nama: "Wisata Pulau Lusi", sektor: "Pariwisata", kec: "Jabon", lat: -7.5670, lng: 112.8360, risk: "Sedang" }
     ];
 
-    // LOAD MAP
     map.on('load', () => {
         // Layer 3D Buildings
         const layers = map.getStyle().layers;
@@ -208,7 +218,6 @@
         updateStats(dataStore);
     });
 
-    // --- FUNGSI RENDER POINT ---
     let currentMarkers = [];
     function renderPoints(data) {
         currentMarkers.forEach(m => m.remove());
@@ -217,10 +226,9 @@
         listEl.innerHTML = '';
 
         data.forEach(item => {
-            // Marker Map
             const el = document.createElement('div');
             el.className = 'pulse';
-            if(item.risk === 'Tinggi') el.style.background = '#e74c3c'; // Merah jika risiko tinggi
+            if(item.risk === 'Tinggi') el.style.background = '#e74c3c';
             
             const marker = new mapboxgl.Marker(el)
                 .setLngLat([item.lng, item.lat])
@@ -228,7 +236,6 @@
                 .addTo(map);
             currentMarkers.push(marker);
 
-            // List Item Sidebar
             const listItem = document.createElement('div');
             listItem.className = 'loc-item';
             listItem.innerHTML = `<strong>${item.nama}</strong><br><small>${item.sektor} - ${item.kec}</small>`;
@@ -240,9 +247,7 @@
         });
     }
 
-    // --- FUNGSI POPUP DENGAN NAVIGASI ---
     function createPopup(item) {
-        // Kita gunakan HTML string untuk Popup
         const html = `
             <div class="popup-header">${item.nama}</div>
             <div class="popup-body">
@@ -256,58 +261,34 @@
         return new mapboxgl.Popup({ offset: 25 }).setHTML(html);
     }
 
-    // --- LOGIC NAVIGASI ---
     window.startNavigation = function(destLng, destLat) {
-        // 1. Set Tujuan
         directions.setDestination([destLng, destLat]);
-
-        // 2. Ambil Lokasi User (GPS)
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(position => {
                 const userLng = position.coords.longitude;
                 const userLat = position.coords.latitude;
-                
-                // Set Asal
                 directions.setOrigin([userLng, userLat]);
-                
-                // Zoom ke area rute
-                map.flyTo({
-                    center: [userLng, userLat],
-                    zoom: 13
-                });
+                map.flyTo({ center: [userLng, userLat], zoom: 13 });
             }, () => {
-                alert("Mohon izinkan akses lokasi (GPS) browser Anda untuk memulai navigasi.");
+                alert("Mohon izinkan akses lokasi (GPS) browser Anda.");
             });
         } else {
             alert("Browser Anda tidak mendukung Geolocation.");
         }
     }
 
-    // --- LOGIC SWITCH 2D / 3D ---
     window.switchMode = function(mode) {
-        // Update tombol active
         document.getElementById('btn-2d').classList.remove('active');
         document.getElementById('btn-3d').classList.remove('active');
         document.getElementById('btn-' + mode.toLowerCase()).classList.add('active');
 
         if (mode === '2D') {
-            // Ubah ke Pandangan Atas (Flat)
-            map.easeTo({
-                pitch: 0,
-                bearing: 0,
-                duration: 1000 // Animasi 1 detik
-            });
+            map.easeTo({ pitch: 0, bearing: 0, duration: 1000 });
         } else {
-            // Ubah ke Pandangan Miring (3D)
-            map.easeTo({
-                pitch: 60,
-                bearing: -17,
-                duration: 1000
-            });
+            map.easeTo({ pitch: 60, bearing: -17, duration: 1000 });
         }
     }
 
-    // --- HELPER LAIN ---
     window.filterData = function(cat, el) {
         document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
         el.classList.add('active');
@@ -319,7 +300,6 @@
         document.getElementById('total-count').innerText = data.length;
         document.getElementById('risk-count').innerText = data.filter(d => d.risk === 'Tinggi').length;
     }
-
 </script>
 
 </body>
